@@ -1,0 +1,155 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id              Int       @id @default(autoincrement())
+  nom             String
+  prenom          String
+  email           String    @unique
+  numero          Int?
+  dateNaissance   DateTime?
+  photoProfil     String?   // PP = photo de profil
+  numeroLicence   String?
+  substituer      Boolean   @default(false) // Subtiter Y/N
+  info            String?
+
+  suspension       Boolean  @default(false)
+  valeurContrat   Float?    // Valeur €
+  dureeContrat    Int?      // Durée de contrat (en mois par ex)
+  createdAt       DateTime  @default(now())
+  role            Role     @default(USER)
+  
+}
+
+model Match {
+  id        Int           @id @default(autoincrement())
+  date      DateTime?
+  heure     DateTime?
+  lieu      String
+  score     Int?
+  
+}
+
+model Club {
+  id              Int       @id @default(autoincrement())
+  nom             String
+  logo            String?
+  dateCreation    DateTime?
+  valeur          Float?
+  capital         Float?
+  info            String?  
+}
+
+model StatUserMatch {
+  id        Int       @id @default(autoincrement())
+  
+  buts      Int        @default(0)
+  passes    Int        @default(0)
+  cartonsJaunes Int    @default(0)
+  cartonsRouges Int    @default(0)
+  tempsJeu  Int?       // en minutes
+
+  createdAt DateTime   @default(now())
+}
+
+model Championnat {
+  id        Int       @id @default(autoincrement())
+  nom       String
+  pays      String
+  saison    String
+}
+
+model Classement {
+  id             Int       @id @default(autoincrement())
+  
+
+  points         Int        @default(0)
+  victoires      Int        @default(0)
+  defaites       Int        @default(0)
+  nuls           Int        @default(0)
+  difference     Int        @default(0)
+
+  updatedAt      DateTime   @updatedAt
+}
+
+model Actualite {
+  id        Int       @id @default(autoincrement())
+  titre     String
+  contenu   String
+  image     String?
+  
+
+  date      DateTime   @default(now())
+}
+
+model Entrainement {
+  id        Int       @id @default(autoincrement())
+  date      DateTime?
+  heure     DateTime?
+  lieu      String
+  notes     String?
+
+  createdAt DateTime  @default(now())
+}
+
+// ==================== Enumération ====================
+enum Role {
+  USER
+  ADMIN
+}
+
+enum LevelT {
+  Dep
+  Reg
+  Nat
+  EU
+  Inter
+}
+
+enum Post {
+  Gardien
+  Defenceur
+  Centre
+  Ailier
+}
+
+enum Categorie {
+  Coatch
+  Player
+  Anonyme
+  All
+  Directeur
+}
+
+enum LevelP {
+  Junior
+  Senior
+  Debutant
+  Intermediaire
+  Confirme
+  The_GOAT
+  Expert
+}
+
+enum Equipement {
+  Cross
+  Casque
+  Plastron
+  Protege
+  Maillot
+  Patins
+  Accessoir_gardien
+}
+
+enum Merch {
+  Maillot
+  Veste
+  Gobelet
+  Echarpe 
+}
