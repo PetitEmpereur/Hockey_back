@@ -1,7 +1,9 @@
-import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 
-const prisma = new PrismaClient();
+async function getPrismaClient() {
+  const { PrismaClient } = await import("@prisma/client");
+  return new PrismaClient();
+}
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
@@ -16,11 +18,16 @@ export async function POST(req: Request) {
   try {
     const data = await req.json();
 
-    const match = await prisma.match.create({
-      data,
-    });
+    const prisma = await getPrismaClient();
+    try {
+      const match = await prisma.match.create({
+        data,
+      });
 
-    return NextResponse.json({ success: true, match });
+      return NextResponse.json({ success: true, match });
+    } finally {
+      await prisma.$disconnect();
+    }
   } catch (error) {
     const message = getErrorMessage(error);
     console.error("Erreur POST /api/matchs:", message);
@@ -30,8 +37,13 @@ export async function POST(req: Request) {
 
 export async function GET() {
   try {
-    const matchs = await prisma.match.findMany();
-    return NextResponse.json(matchs);
+    const prisma = await getPrismaClient();
+    try {
+      const matchs = await prisma.match.findMany();
+      return NextResponse.json(matchs);
+    } finally {
+      await prisma.$disconnect();
+    }
   } catch (error) {
     const message = getErrorMessage(error);
     console.error("Erreur GET /api/matchs:", message);
