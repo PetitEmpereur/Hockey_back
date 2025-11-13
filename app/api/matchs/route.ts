@@ -16,25 +16,25 @@ export async function POST(req: Request) {
   try {
     const data = await req.json();
 
-    const user = await prisma.user.create({
+    const match = await prisma.match.create({
       data,
     });
 
-    return NextResponse.json({ success: true, user });
+    return NextResponse.json({ success: true, match });
   } catch (error) {
     const message = getErrorMessage(error);
-    console.error("Erreur POST /api/users:", message);
+    console.error("Erreur POST /api/matchs:", message);
     return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }
 
 export async function GET() {
   try {
-    const users = await prisma.user.findMany();
-    return NextResponse.json(users);
+    const matchs = await prisma.match.findMany();
+    return NextResponse.json(matchs);
   } catch (error) {
     const message = getErrorMessage(error);
-    console.error("Erreur GET /api/users:", message);
+    console.error("Erreur GET /api/matchs:", message);
     return NextResponse.json({ error: "Erreur serveur", details: message }, { status: 500 });
   }
 }

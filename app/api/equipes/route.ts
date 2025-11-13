@@ -1,7 +1,9 @@
-import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 
-const prisma = new PrismaClient();
+async function getPrismaClient() {
+  const { PrismaClient } = await import("@prisma/client");
+  return new PrismaClient();
+}
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
@@ -16,25 +18,47 @@ export async function POST(req: Request) {
   try {
     const data = await req.json();
 
-    const user = await prisma.user.create({
-      data,
-    });
+    const prisma = await getPrismaClient();
+    try {
+      // Le modèle `Equipe` n'existe peut-être pas dans schema.prisma.
+      // On tente d'appeler le modèle si présent, sinon on retourne 501 pour indiquer
+      // que l'endpoint n'est pas implémenté côté Prisma.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const maybeEquipe = (prisma as any).equipe;
+      if (typeof maybeEquipe?.create === "function") {
+        const equipe = await maybeEquipe.create({ data });
+        return NextResponse.json({ success: true, equipe });
+      }
 
-    return NextResponse.json({ success: true, user });
+      return NextResponse.json({ success: false, message: "Modèle 'Equipe' introuvable (ajoutez-le à prisma/schema.prisma)" }, { status: 501 });
+    } finally {
+      await prisma.$disconnect();
+    }
   } catch (error) {
     const message = getErrorMessage(error);
-    console.error("Erreur POST /api/users:", message);
+    console.error("Erreur POST /api/equipes:", message);
     return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }
 
 export async function GET() {
   try {
-    const users = await prisma.user.findMany();
-    return NextResponse.json(users);
+    const prisma = await getPrismaClient();
+    try {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const maybeEquipe = (prisma as any).equipe;
+      if (typeof maybeEquipe?.findMany === "function") {
+        const equipes = await maybeEquipe.findMany();
+        return NextResponse.json(equipes);
+      }
+
+      return NextResponse.json({ error: "Modèle 'Equipe' introuvable (ajoutez-le à prisma/schema.prisma)" }, { status: 501 });
+    } finally {
+      await prisma.$disconnect();
+    }
   } catch (error) {
     const message = getErrorMessage(error);
-    console.error("Erreur GET /api/users:", message);
+    console.error("Erreur GET /api/equipes:", message);
     return NextResponse.json({ error: "Erreur serveur", details: message }, { status: 500 });
   }
 }
