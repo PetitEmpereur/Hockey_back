@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 
 
+
 async function getPrismaClient() {
   const { PrismaClient } = await import("@prisma/client");
   return new PrismaClient();
