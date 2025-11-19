@@ -41,12 +41,17 @@ export async function POST(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
-    const { id } = await req.json();
+    const url = new URL(req.url);
+    const id = url.searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ success: false, message: "Paramètre 'id' manquant" }, { status: 400 });
+    }
 
     const prisma = await getPrismaClient();
     try {
       await prisma.user.delete({
-        where: { id },
+        where: { id: parseInt(id, 10) },
       });
       return NextResponse.json({ success: true });
     } finally {
