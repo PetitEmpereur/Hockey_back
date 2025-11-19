@@ -59,25 +59,34 @@ export async function DELETE(req: Request) {
     const { id } = await req.json();
 
     if (!id || typeof id !== "number") {
-      return NextResponse.json({ success: false, message: "ID invalide" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: "ID invalide" },
+        { status: 400 }
+      );
     }
 
     const prisma = await getPrismaClient();
+
     try {
-      const deleted = await prisma.user.deleteMany({ where: { id } });
+      const deleted = await prisma.user.deleteMany({
+        where: { id }
+      });
 
       if (deleted.count === 0) {
-        return NextResponse.json({ success: false, message: "Utilisateur non trouvé" }, { status: 404 });
+        return NextResponse.json(
+          { success: false, message: "Utilisateur non trouvé" },
+          { status: 404 }
+        );
       }
 
       return NextResponse.json({ success: true });
     } finally {
       await prisma.$disconnect();
     }
-  } catch (error) {
-    const message = getErrorMessage(error);
-    console.error("Erreur DELETE /api/users:", message);
-    return NextResponse.json({ success: false, message }, { status: 500 });
+  }catch (error) {
+    return NextResponse.json(
+      { success: false, message: "Erreur serveur" },
+      { status: 500 }
+    );
   }
 }
-
