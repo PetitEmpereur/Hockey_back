@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 
+
 async function getPrismaClient() {
   const { PrismaClient } = await import("@prisma/client");
   return new PrismaClient();
@@ -38,6 +39,27 @@ export async function POST(req: Request) {
   }
 }
 
+export async function DELETE(req: Request) {
+  try {
+    const { id } = await req.json();
+
+    const prisma = await getPrismaClient();
+    try {
+      await prisma.user.delete({
+        where: { id },
+      });
+      return NextResponse.json({ success: true });
+    } finally {
+      await prisma.$disconnect();
+    }
+  } catch (error) {
+    const message = getErrorMessage(error);
+    console.error("Erreur DELETE /api/users:", message);
+    return NextResponse.json({ success: false, message }, { status: 500 });
+  }
+}
+
+
 export async function GET() {
   try {
     const prisma = await getPrismaClient();
@@ -54,39 +76,3 @@ export async function GET() {
   }
 }
 
-export async function DELETE(req: Request) {
-  try {
-    const { id } = await req.json();
-
-    if (!id || typeof id !== "number") {
-      return NextResponse.json(
-        { success: false, message: "ID invalide" },
-        { status: 400 }
-      );
-    }
-
-    const prisma = await getPrismaClient();
-
-    try {
-      const deleted = await prisma.user.deleteMany({
-        where: { id }
-      });
-
-      if (deleted.count === 0) {
-        return NextResponse.json(
-          { success: false, message: "Utilisateur non trouvé" },
-          { status: 404 }
-        );
-      }
-
-      return NextResponse.json({ success: true });
-    } finally {
-      await prisma.$disconnect();
-    }
-  }catch (error) {
-    return NextResponse.json(
-      { success: false, message: "Erreur serveur" },
-      { status: 500 }
-    );
-  }
-}
