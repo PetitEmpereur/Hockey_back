@@ -58,11 +58,18 @@ export async function DELETE(req: Request) {
   try {
     const { id } = await req.json();
 
+    if (!id || typeof id !== "number") {
+      return NextResponse.json({ success: false, message: "ID invalide" }, { status: 400 });
+    }
+
     const prisma = await getPrismaClient();
     try {
-      await prisma.user.delete({
-        where: { id },
-      });
+      const deleted = await prisma.user.deleteMany({ where: { id } });
+
+      if (deleted.count === 0) {
+        return NextResponse.json({ success: false, message: "Utilisateur non trouvé" }, { status: 404 });
+      }
+
       return NextResponse.json({ success: true });
     } finally {
       await prisma.$disconnect();
@@ -73,3 +80,4 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }
+
