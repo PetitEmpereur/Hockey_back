@@ -43,7 +43,6 @@ export async function POST(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
-    // Support both query param (?id=123) and JSON body { id: 123 }
     const url = new URL(req.url);
     let id = url.searchParams.get("id");
 
@@ -60,34 +59,21 @@ export async function DELETE(req: Request) {
     }
 
     if (!id || Number.isNaN(Number(id))) {
-      return NextResponse.json({ success: false, message: "Paramètre 'id' manquant ou invalide" }, { status: 400, headers: corsHeaders() });
+      return NextResponse.json({ success: false, message: "Paramètre 'id' manquant ou invalide" }, { status: 400 });
     }
 
     const prisma = await getPrismaClient();
     try {
       await prisma.user.delete({ where: { id: parseInt(id, 10) } });
-      return NextResponse.json({ success: true }, { headers: corsHeaders() });
+      return NextResponse.json({ success: true });
     } finally {
       await prisma.$disconnect();
     }
   } catch (error) {
     const message = getErrorMessage(error);
     console.error("Erreur DELETE /api/users:", message);
-    return NextResponse.json({ success: false, message }, { status: 500, headers: corsHeaders() });
+    return NextResponse.json({ success: false, message }, { status: 500 });
   }
-}
-
-// OPTIONS handler to satisfy CORS preflight requests and avoid 405s
-export async function OPTIONS() {
-  return NextResponse.json(null, { status: 204, headers: corsHeaders() });
-}
-
-function corsHeaders() {
-  return {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-  };
 }
 
 
