@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
+//import { NextResponse } from 'next/server';
 
-export function middleware(request) {
+//export function middleware(request) {
 
    // const {  pathname, searchParams } = request.nextUrl;
    //console.log({ pathname, searchParams: searchParams.get('sort')})
@@ -16,12 +16,12 @@ export function middleware(request) {
     //    value:'fastapi',
     //    path: '/',
     //})
-    return response;
+//   return response;
     //response.NextResponse.json('x-custom-header', 'my custom header value');
 
 
-}
+//}
 
-export const config = {
-    matcher: ['/api/:path*']
-}
+//export const config = {
+//    matcher: ['/api/:path*']
+//}
