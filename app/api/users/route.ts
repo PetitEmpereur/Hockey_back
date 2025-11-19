@@ -53,3 +53,23 @@ export async function GET() {
     return NextResponse.json({ error: "Erreur serveur", details: message }, { status: 500 });
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    const { id } = await req.json();
+
+    const prisma = await getPrismaClient();
+    try {
+      await prisma.user.delete({
+        where: { id },
+      });
+      return NextResponse.json({ success: true });
+    } finally {
+      await prisma.$disconnect();
+    }
+  } catch (error) {
+    const message = getErrorMessage(error);
+    console.error("Erreur DELETE /api/users:", message);
+    return NextResponse.json({ success: false, message }, { status: 500 });
+  }
+}

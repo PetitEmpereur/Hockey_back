@@ -53,3 +53,4 @@ export async function GET() {
     return NextResponse.json({ error: "Erreur serveur", details: message }, { status: 500 });
   }
 }
+
