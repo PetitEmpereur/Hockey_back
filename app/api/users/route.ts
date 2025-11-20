@@ -3,8 +3,6 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 
-
-
 async function getPrismaClient() {
   const { PrismaClient } = await import("@prisma/client");
   return new PrismaClient();
@@ -76,8 +74,6 @@ export async function DELETE(req: Request) {
   }
 }
 
-
-
 export async function GET() {
   try {
     const prisma = await getPrismaClient();
@@ -93,4 +89,3 @@ export async function GET() {
     return NextResponse.json({ error: "Erreur serveur", details: message }, { status: 500 });
   }
 }
-
