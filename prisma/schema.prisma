@@ -11,19 +11,19 @@ model User {
   id              Int       @id @default(autoincrement())
   nom             String
   prenom          String
+  countryCode     String
   email           String    @unique
-  numero          Int?
+  phoneNumber     Int?
   dateNaissance   DateTime?
-  photoProfil     String?   // PP = photo de profil
-  numeroLicence   String?
-  substituer      Boolean   @default(false) // Subtiter Y/N
   info            String?
+  role            Role     @default(VISITOR)
+
+
+  substituer      Boolean   @default(false) // Subtiter Y/N
 
   suspension       Boolean  @default(false)
-  valeurContrat   Float?    // Valeur €
-  dureeContrat    Int?      // Durée de contrat (en mois par ex)
   createdAt       DateTime  @default(now())
-  role            Role     @default(USER)
+  
   
 }
 
@@ -100,7 +100,9 @@ model Entrainement {
 
 // ==================== Enumération ====================
 enum Role {
-  USER
+  COACH
+  PLAYER
+  VISITOR
   ADMIN
 }
 
