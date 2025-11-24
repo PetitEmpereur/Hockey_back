@@ -32,8 +32,6 @@ CREATE TABLE "User" (
     "substituer" BOOLEAN NOT NULL DEFAULT false,
     "info" TEXT,
     "suspension" BOOLEAN NOT NULL DEFAULT false,
-    "valeurContrat" DOUBLE PRECISION,
-    "dureeContrat" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "role" "Role" NOT NULL DEFAULT 'USER',
 

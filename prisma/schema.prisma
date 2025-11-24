@@ -18,13 +18,10 @@ model User {
   info            String?
   role            Role     @default(VISITOR)
 
-
   substituer      Boolean   @default(false) // Subtiter Y/N
 
   suspension       Boolean  @default(false)
   createdAt       DateTime  @default(now())
-  
-  
 }
 
 model Match {
