@@ -17,7 +17,7 @@ model User {
   dateNaissance   DateTime?
   info            String?
   role            Role     @default(VISITOR)
-
+  isTermsAccepted Boolean
   substituer      Boolean   @default(false) // Subtiter Y/N
 
   suspension       Boolean  @default(false)
