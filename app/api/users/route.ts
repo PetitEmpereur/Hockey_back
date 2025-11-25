@@ -19,19 +19,46 @@ function getErrorMessage(error: unknown) {
 
 export async function POST(req: Request) {
   try {
-    const data = await req.json();
+    const { action, ... data } = await req.json();
 
     const prisma = await getPrismaClient();
-
+   // --- CRÉATION USER --- 
     try {
-      const user = await prisma.user.create({
-        data: {
-          ...data,
-          dateNaissance: new Date(data.dateNaissance),
-        },
+      if (action === "create"){
+        const user = await prisma.user.create({
+          data: {
+            ...data,
+            dateNaissance: new Date(data.dateNaissance),
+          },
+        });
+        return NextResponse.json({ success: true, user });
+      }
+
+// --- LOGIN ---
+
+      if (action === "login") {
+      const { email, password } = data;
+
+      const user = await prisma.user.findUnique({
+        where: { email },
       });
 
+      if (!user) {
+        return NextResponse.json(
+          { success: false, message: "Utilisateur introuvable" },
+          { status: 401 }
+        );
+      }
+
+      if (user.password !== password) {
+        return NextResponse.json(
+          { success: false, message: "Mot de passe incorrect" },
+          { status: 401 }
+        );
+      }
+
       return NextResponse.json({ success: true, user });
+    }
     } finally {
       await prisma.$disconnect();
     }
