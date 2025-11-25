@@ -11,7 +11,7 @@ model User {
   id              Int       @id @default(autoincrement())
   nom             String
   prenom          String
-  countryCode     Int?
+  countryCode     String?
   email           String    @unique
   phoneNumber     Int?
   dateNaissance   DateTime?
