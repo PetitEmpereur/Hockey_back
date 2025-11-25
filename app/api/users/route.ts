@@ -23,17 +23,12 @@ export async function POST(req: Request) {
 
     const prisma = await getPrismaClient();
 
-    const parsedDate = data.dateNaissance
-      ? new Date(data.dateNaissance)
-      : null;
-
-    if (parsedDate && isNaN(parsedDate.getTime())) {
-      throw new Error("Format de date invalide");
-    }
-    
     try {
       const user = await prisma.user.create({
-        data,
+        data: {
+          ...data,
+          dateNaissance: new Date(data.dateNaissance),
+        },
       });
 
       return NextResponse.json({ success: true, user });
