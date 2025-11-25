@@ -17,9 +17,12 @@ model User {
   dateNaissance   DateTime?
   info            String?
   role            Role     @default(VISITOR)
+
+  numeroLicence     String   @default("")
+ 
   isTermsAccepted Boolean
   substituer      Boolean   @default(false) // Subtiter Y/N
-
+  
   suspension       Boolean  @default(false)
   createdAt       DateTime  @default(now())
 }
