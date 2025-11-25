@@ -13,7 +13,7 @@ model User {
   prenom          String
   countryCode     String?
   email           String    @unique
-  phoneNumber     Int?
+  phoneNumber     String
   dateNaissance   DateTime?
   info            String?
   role            Role     @default(VISITOR)
