@@ -34,11 +34,11 @@ export async function POST(req: Request) {
         let user;
         try {
           user = await prisma.user.create({
-          data: {
-            ...data,
-            dateNaissance: data.dateNaissance ? new Date(data.dateNaissance) : undefined,
-          },
-        });
+            data: {
+              ...data,
+              dateNaissance: data.dateNaissance ? new Date(data.dateNaissance) : undefined,
+            },
+          });
         } catch (err) {
           // Prisma unique constraint error (e.g. duplicate email)
           if ((err as unknown as { code?: string }).code === 'P2002') {
