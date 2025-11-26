@@ -31,12 +31,21 @@ export async function POST(req: Request) {
           data.password = await bcrypt.hash(String(data.password), 10);
         }
 
-        const user = await prisma.user.create({
+        let user;
+        try {
+          user = await prisma.user.create({
           data: {
             ...data,
             dateNaissance: data.dateNaissance ? new Date(data.dateNaissance) : undefined,
           },
         });
+        } catch (err) {
+          // Prisma unique constraint error (e.g. duplicate email)
+          if ((err as unknown as { code?: string }).code === 'P2002') {
+            return NextResponse.json({ success: false, message: 'Email déjà utilisé' }, { status: 409 });
+          }
+          throw err;
+        }
         return NextResponse.json({ success: true, user });
       }
 
@@ -91,6 +100,8 @@ export async function POST(req: Request) {
         );
       }
 
+      // do not return the password hash to the client
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password: _pw, ...userSafe } = user;
       return NextResponse.json({ success: true, user: userSafe });
     }
