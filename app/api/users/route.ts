@@ -42,27 +42,32 @@ export async function POST(req: Request) {
 
 // --- LOGIN ---
 
-      if (action === "login") {
-      const { email, password } = data;
+  if (action === "login") {
+     const { identifier, password } = data;
 
-      const user = await prisma.user.findUnique({
-        where: { email },
-        select: {
-          id: true,
-          nom: true,
-          prenom: true,
-          countryCode: true,
-          email: true,
-          phoneNumber: true,
-          dateNaissance: true,
-          info: true,
-          role: true,
-          substituer: true,
-          suspension: true,
-          createdAt: true,
-          password: true,
-        },
-      });
+     let user;
+
+        if (identifier.includes("@")) {
+          // identifier est un email
+          user = await prisma.user.findUnique({
+            where: { email: identifier },
+            select: {
+              id: true,
+              nom: true,
+              prenom: true,
+              countryCode: true,
+              email: true,
+              phoneNumber: true,
+              dateNaissance: true,
+              info: true,
+              role: true,
+              substituer: true,
+              suspension: true,
+              createdAt: true,
+              password: true,
+            },
+          });
+        } 
 
       if (!user) {
         return NextResponse.json(
