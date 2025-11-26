@@ -2,6 +2,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
 
 async function getPrismaClient() {
   const { PrismaClient } = await import("@prisma/client");
@@ -25,10 +26,15 @@ export async function POST(req: Request) {
    // --- CRÉATION USER --- 
     try {
       if (action === "create"){
+        // if a password is provided, hash it before storing
+        if (data.password) {
+          data.password = await bcrypt.hash(String(data.password), 10);
+        }
+
         const user = await prisma.user.create({
           data: {
             ...data,
-            dateNaissance: new Date(data.dateNaissance),
+            dateNaissance: data.dateNaissance ? new Date(data.dateNaissance) : undefined,
           },
         });
         return NextResponse.json({ success: true, user });
@@ -41,6 +47,21 @@ export async function POST(req: Request) {
 
       const user = await prisma.user.findUnique({
         where: { email },
+        select: {
+          id: true,
+          nom: true,
+          prenom: true,
+          countryCode: true,
+          email: true,
+          phoneNumber: true,
+          dateNaissance: true,
+          info: true,
+          role: true,
+          substituer: true,
+          suspension: true,
+          createdAt: true,
+          password: true,
+        },
       });
 
       if (!user) {
@@ -50,14 +71,26 @@ export async function POST(req: Request) {
         );
       }
 
-      if (user.password !== password) {
+      // If user exists but has no password stored, reject login
+      if (!user.password) {
+        return NextResponse.json(
+          { success: false, message: "Mot de passe non défini pour cet utilisateur" },
+          { status: 401 }
+        );
+      }
+
+      const passwordMatches = await bcrypt.compare(String(password), user.password);
+      if (!passwordMatches) {
         return NextResponse.json(
           { success: false, message: "Mot de passe incorrect" },
           { status: 401 }
         );
       }
 
-      return NextResponse.json({ success: true, user });
+      // do not return the password hash to the client
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password: _pw, ...userSafe } = user;
+      return NextResponse.json({ success: true, user: userSafe });
     }
     } finally {
       await prisma.$disconnect();
