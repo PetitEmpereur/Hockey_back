@@ -92,6 +92,13 @@ export async function POST(req: Request) {
       const { password: _pw, ...userSafe } = user;
       return NextResponse.json({ success: true, user: userSafe });
     }
+
+    return NextResponse.json(
+      { success: false, message: "Action inconnue" },
+      { status: 400 }
+    );
+
+
     } finally {
       await prisma.$disconnect();
     }
