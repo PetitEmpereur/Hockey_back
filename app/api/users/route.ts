@@ -43,61 +43,61 @@ export async function POST(req: Request) {
 // --- LOGIN ---
 
   if (action === "login") {
-  const { identifier, password } = data;
+    const { identifier, password } = data;
+    const cleanIdentifier = String(identifier).trim();
 
-  let user;
+    let user;
 
-  if (identifier.includes("@")) {
-      // recherche par email
-      user = await prisma.user.findUnique({
-        where: { email: identifier.trim() },
-        select: {
-          id: true,
-          nom: true,
-          prenom: true,
-          countryCode: true,
-          email: true,
-          phoneNumber: true,
-          dateNaissance: true,
-          info: true,
-          role: true,
-          substituer: true,
-          suspension: true,
-          createdAt: true,
-          password: true,
-        },
-      });
-    } 
+    if (cleanIdentifier.includes("@")) {
+    user = await prisma.user.findUnique({
+      where: { email: cleanIdentifier },
+      select: {
+        id: true,
+        nom: true,
+        prenom: true,
+        countryCode: true,
+        email: true,
+        phoneNumber: true,
+        dateNaissance: true,
+        info: true,
+        role: true,
+        substituer: true,
+        suspension: true,
+        createdAt: true,
+        password: true,
+      },
+    });
+  } 
 
-    if (!user) {
-      return NextResponse.json(
-        { success: false, message: "Utilisateur introuvable" },
-        { status: 401 }
-      );
+      if (!user) {
+        return NextResponse.json(
+          { success: false, message: "Utilisateur introuvable" },
+          { status: 401 }
+        );
+      }
+
+      if (!user.password) {
+        return NextResponse.json(
+          { success: false, message: "Mot de passe non défini pour cet utilisateur" },
+          { status: 401 }
+        );
+      }
+
+      const passwordMatches = await bcrypt.compare(String(password), user.password);
+      if (!passwordMatches) {
+        return NextResponse.json(
+          { success: false, message: "Mot de passe incorrect" },
+          { status: 401 }
+        );
+      }
+
+      const { password: _pw, ...userSafe } = user;
+      return NextResponse.json({ success: true, user: userSafe });
     }
-
-    if (!user.password) {
       return NextResponse.json(
-        { success: false, message: "Mot de passe non défini pour cet utilisateur" },
-        { status: 401 }
+        { success: false, message: "Action inconnue" },
+        { status: 400 }
       );
-    }
-
-    const passwordMatches = await bcrypt.compare(String(password), user.password);
-    if (!passwordMatches) {
-      return NextResponse.json(
-        { success: false, message: "Mot de passe incorrect" },
-        { status: 401 }
-      );
-    }
-
-    const { password: _pw, ...userSafe } = user;
-    return NextResponse.json({ success: true, user: userSafe });
- }
-    return NextResponse.json(
-      { success: false, message: "Action inconnue" },
-      { status: 400 }
-    );
 
 
     } finally {
