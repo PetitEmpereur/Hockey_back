@@ -57,7 +57,7 @@ export async function POST(req: Request) {
 
     let user;
 
-    if (cleanIdentifier.includes("@")) {
+      if (cleanIdentifier.includes("@")) {
     user = await prisma.user.findUnique({
       where: { email: cleanIdentifier },
       select: {
@@ -76,7 +76,7 @@ export async function POST(req: Request) {
         password: true,
       },
     });
-  } 
+  }
 
       if (!user) {
         return NextResponse.json(
@@ -121,21 +121,27 @@ export async function POST(req: Request) {
   }
 }
 
-
+//fonction pour supprimer un user
 export async function DELETE(req: Request) {
+  const prisma = await getPrismaClient();
+
   try {
     const url = new URL(req.url);
     let id = url.searchParams.get("id");
+    let password: string | undefined;
 
     if (!id) {
-      // try JSON body
+      // try JSON body — accept id = 0 and coerce types
       try {
         const body = await req.json();
         if (body && (body.id || body.id === 0)) {
           id = String(body.id);
+          password = body.password ? String(body.password) : undefined;
         }
-      } catch {
-        // ignore JSON parse error; will validate below
+      } catch (err: unknown) {
+        // ignore parse error (no JSON body)
+        // reference err to satisfy lint rules
+        void err;
       }
     }
 
@@ -143,19 +149,31 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ success: false, message: "Paramètre 'id' manquant ou invalide" }, { status: 400 });
     }
 
-    const prisma = await getPrismaClient();
-    try {
-      await prisma.user.delete({ where: { id: parseInt(id, 10) } });
-      return NextResponse.json({ success: true });
-    } finally {
-      await prisma.$disconnect();
+    const userToDelete = await prisma.user.findUnique({ where: { id: parseInt(id, 10) } });
+    if (!userToDelete) {
+      return NextResponse.json({ success: false, message: "Utilisateur introuvable" }, { status: 404 });
     }
+
+    if (!password) {
+      return NextResponse.json({ success: false, message: "Mot de passe requis" }, { status: 400 });
+    }
+
+    const isMatch = await bcrypt.compare(password, userToDelete.password);
+    if (!isMatch) {
+      return NextResponse.json({ success: false, message: "Mot de passe incorrect" }, { status: 401 });
+    }
+
+    await prisma.user.delete({ where: { id: parseInt(id, 10) } });
+    return NextResponse.json({ success: true });
   } catch (error) {
     const message = getErrorMessage(error);
     console.error("Erreur DELETE /api/users:", message);
     return NextResponse.json({ success: false, message }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
   }
 }
+
 
 export async function GET() {
   try {
