@@ -178,15 +178,10 @@ export async function DELETE(req: Request) {
 export async function GET() {
   try {
     const prisma = await getPrismaClient();
-    try {
-      const users = await prisma.user.findMany();
-      return NextResponse.json(users);
-    } finally {
-      await prisma.$disconnect();
-    }
+    const users = await prisma.user.findMany();
+    return NextResponse.json({ success: true, users });
   } catch (error) {
-    const message = getErrorMessage(error);
-    console.error("Erreur GET /api/users:", message);
-    return NextResponse.json({ error: "Erreur serveur", details: message }, { status: 500 });
+    return NextResponse.json({ success: false, message: getErrorMessage(error) }, { status: 500 });
   }
 }
+
