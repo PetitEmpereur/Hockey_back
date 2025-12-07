@@ -30,12 +30,16 @@ model User {
 }
 
 model Match {
-  id        Int           @id @default(autoincrement())
-  date      DateTime?
-  heure     DateTime?
-  lieu      String
-  score     Int?
-  
+  id                Int           @id @default(autoincrement())
+  titre             String
+  dateEtHeure       DateTime?
+  Type              String
+  lieu              String
+  salle             String
+  prix              Int?
+  info              String?
+
+  createdAt         DateTime  @default(now())
 }
 
 model Club {

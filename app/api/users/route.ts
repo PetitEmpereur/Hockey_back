@@ -26,7 +26,6 @@ export async function POST(req: Request) {
    // --- CRÉATION USER --- 
     try {
       if (action === "create"){
-        // if a password is provided, hash it before storing
         if (data.password) {
           data.password = await bcrypt.hash(String(data.password), 10);
         }
