@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 
+// Disable static generation for dynamic route handlers
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 async function getPrismaClient() {
   const { PrismaClient } = await import("@prisma/client");
   return new PrismaClient();
