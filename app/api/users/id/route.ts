@@ -46,7 +46,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     return NextResponse.json({ success: true, user: userSafe });
   } catch (error) {
     const message = getErrorMessage(error);
-    console.error("Erreur GET /api/users/[id]:", message);
+    console.error("Erreur GET /api/users/id:", message);
     return NextResponse.json(
       { success: false, message: "Erreur serveur" },
       { status: 500 }
@@ -77,7 +77,7 @@ export async function PUT(
     // Do not allow updating password via this endpoint (use dedicated endpoint)
     if (data.password) {
       return NextResponse.json(
-        { success: false, message: "Utilise /api/users/[id]/password pour changer le mot de passe" },
+        { success: false, message: "Utilise /api/users/id/password pour changer le mot de passe" },
         { status: 400 }
       );
     }
@@ -93,7 +93,7 @@ export async function PUT(
     return NextResponse.json({ success: true, user: userSafe });
   } catch (error) {
     const message = getErrorMessage(error);
-    console.error("Erreur PUT /api/users/[id]:", message);
+    console.error("Erreur PUT /api/users/id:", message);
     return NextResponse.json(
       { success: false, message: "Erreur serveur" },
       { status: 500 }
