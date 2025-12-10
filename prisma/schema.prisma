@@ -33,7 +33,7 @@ model Match {
   id                Int           @id @default(autoincrement())
   titre             String
   dateEtHeure       DateTime?
-  Type              String
+  type              String
   lieu              String
   salle             String
   prix              Int
