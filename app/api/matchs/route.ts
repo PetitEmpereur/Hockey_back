@@ -22,21 +22,18 @@ export async function POST(req: Request) {
     const data = await req.json();
 
     const prisma = await getPrismaClient();
-    try {
-      const match = await prisma.match.create({
-        data,
-      });
+    const match = await prisma.match.create({ data });
 
-      return NextResponse.json({ success: true, match });
-    } finally {
-      await prisma.$disconnect();
-    }
+    return NextResponse.json({ success: true, match });
   } catch (error) {
-    const message = getErrorMessage(error);
-    console.error("Erreur POST /api/matchs:", message);
-    return NextResponse.json({ success: false, message }, { status: 500 });
+    console.error(error);
+    return NextResponse.json(
+      { success: false, message: 'Erreur serveur' },
+      { status: 500 }
+    );
   }
 }
+
 
 export async function DELETE(req: Request) {
   try {
