@@ -37,7 +37,7 @@ model Match {
   lieu              String
   salle             String
   prix              Int
-  info              String?
+  description       String?
 
   createdAt         DateTime  @default(now())
 }
