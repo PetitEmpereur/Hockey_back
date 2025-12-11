@@ -19,16 +19,31 @@ function getErrorMessage(error: unknown) {
 
 export async function POST(req: Request) {
   try {
-    const data = await req.json();
+    const body = await req.json();
+
+    // Vérification + conversion
+    const payload = {
+      titre: body.titre,
+      dateHeure: new Date(body.dateHeure),  
+      lieu: body.lieu,
+      prix: Number(body.prix),
+      description: body.description || "",
+      salle: body.salle || "",
+      type: body.type,  
+      
+    };
 
     const prisma = await getPrismaClient();
-    const match = await prisma.match.create({ data });
+
+    const match = await prisma.match.create({
+      data: payload,
+    });
 
     return NextResponse.json({ success: true, match });
   } catch (error) {
-    console.error(error);
+    console.error("Erreur POST /api/matchs:", error);
     return NextResponse.json(
-      { success: false, message: 'Erreur serveur' },
+      { success: false, message: "Erreur serveur" },
       { status: 500 }
     );
   }
