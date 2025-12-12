@@ -18,17 +18,32 @@ function getErrorMessage(error: unknown) {
   }
 }
 
-export async function POST(req: Request) {
-  try {
-    const { action, ... data } = await req.json();
+export async function OPTIONS() {
+  // Cette route répond aux requêtes préflight CORS
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      "Access-Control-Allow-Origin": "https://projet-pgl-hockey-4nh3.vercel.app",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    },
+  });
+}
 
+export async function POST(req: Request) {
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": "https://projet-pgl-hockey-4nh3.vercel.app",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  };
+
+  try {
+    const { action, ...data } = await req.json();
     const prisma = await getPrismaClient();
-   // --- CRÉATION USER --- 
+
     try {
-      if (action === "create"){
-        if (data.password) {
-          data.password = await bcrypt.hash(String(data.password), 10);
-        }
+      if (action === "create") {
+        if (data.password) data.password = await bcrypt.hash(String(data.password), 10);
 
         let user;
         try {
@@ -39,84 +54,82 @@ export async function POST(req: Request) {
             },
           });
         } catch (err) {
-          // Prisma unique constraint error (e.g. duplicate email)
-          if ((err as unknown as { code?: string }).code === 'P2002') {
-            return NextResponse.json({ success: false, message: 'Email déjà utilisé' }, { status: 409 });
+          if ((err as unknown as { code?: string }).code === "P2002") {
+            return NextResponse.json(
+              { success: false, message: "Email déjà utilisé" },
+              { status: 409, headers: corsHeaders }
+            );
           }
           throw err;
         }
-        return NextResponse.json({ success: true, user });
+
+        return NextResponse.json({ success: true, user }, { headers: corsHeaders });
       }
 
-// --- LOGIN ---
+      if (action === "login") {
+        const { identifier, password } = data;
+        const cleanIdentifier = String(identifier).trim();
 
-  if (action === "login") {
-    const { identifier, password } = data;
-    const cleanIdentifier = String(identifier).trim();
+        let user;
+        if (cleanIdentifier.includes("@")) {
+          user = await prisma.user.findUnique({
+            where: { email: cleanIdentifier },
+            select: {
+              id: true,
+              nom: true,
+              prenom: true,
+              countryCode: true,
+              email: true,
+              phoneNumber: true,
+              dateNaissance: true,
+              info: true,
+              role: true,
+              substituer: true,
+              suspension: true,
+              createdAt: true,
+              password: true,
+            },
+          });
+        }
 
-    let user;
+        if (!user) {
+          return NextResponse.json(
+            { success: false, message: "Utilisateur introuvable" },
+            { status: 401, headers: corsHeaders }
+          );
+        }
 
-      if (cleanIdentifier.includes("@")) {
-    user = await prisma.user.findUnique({
-      where: { email: cleanIdentifier },
-      select: {
-        id: true,
-        nom: true,
-        prenom: true,
-        countryCode: true,
-        email: true,
-        phoneNumber: true,
-        dateNaissance: true,
-        info: true,
-        role: true,
-        substituer: true,
-        suspension: true,
-        createdAt: true,
-        password: true,
-      },
-    });
-  }
+        if (!user.password) {
+          return NextResponse.json(
+            { success: false, message: "Mot de passe non défini pour cet utilisateur" },
+            { status: 401, headers: corsHeaders }
+          );
+        }
 
-      if (!user) {
-        return NextResponse.json(
-          { success: false, message: "Utilisateur introuvable" },
-          { status: 401 }
-        );
+        const passwordMatches = await bcrypt.compare(String(password), user.password);
+        if (!passwordMatches) {
+          return NextResponse.json(
+            { success: false, message: "Mot de passe incorrect" },
+            { status: 401, headers: corsHeaders }
+          );
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { password: _pw, ...userSafe } = user;
+        return NextResponse.json({ success: true, user: userSafe }, { headers: corsHeaders });
       }
 
-      if (!user.password) {
-        return NextResponse.json(
-          { success: false, message: "Mot de passe non défini pour cet utilisateur" },
-          { status: 401 }
-        );
-      }
-
-      const passwordMatches = await bcrypt.compare(String(password), user.password);
-      if (!passwordMatches) {
-        return NextResponse.json(
-          { success: false, message: "Mot de passe incorrect" },
-          { status: 401 }
-        );
-      }
-
-      // do not return the password hash to the client
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password: _pw, ...userSafe } = user;
-      return NextResponse.json({ success: true, user: userSafe });
-    }
       return NextResponse.json(
         { success: false, message: "Action inconnue" },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
-
-
     } finally {
       await prisma.$disconnect();
     }
   } catch (error) {
     const message = getErrorMessage(error);
     console.error("Erreur POST /api/users:", message);
-    return NextResponse.json({ success: false, message }, { status: 500 });
+    return NextResponse.json({ success: false, message }, { status: 500, headers: corsHeaders });
   }
 }
 
@@ -138,8 +151,6 @@ export async function DELETE(req: Request) {
           password = body.password ? String(body.password) : undefined;
         }
       } catch (err: unknown) {
-        // ignore parse error (no JSON body)
-        // reference err to satisfy lint rules
         void err;
       }
     }
