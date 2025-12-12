@@ -19,16 +19,17 @@ function getErrorMessage(error: unknown) {
 }
 
 export async function OPTIONS() {
-  // Cette route répond aux requêtes préflight CORS
-  return new NextResponse(null, {
+  // Réponse pour toutes les méthodes autorisées
+  return new Response(null, {
     status: 200,
     headers: {
       "Access-Control-Allow-Origin": "https://projet-pgl-hockey-4nh3.vercel.app",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
     },
   });
 }
+
 
 export async function POST(req: Request) {
   const corsHeaders = {
