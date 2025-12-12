@@ -1,17 +1,21 @@
-export async function getPrismaClient() {
-  const { PrismaClient } = await import("@prisma/client");
-  return new PrismaClient();
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+export function middleware(request: NextRequest) {
+  const response = NextResponse.next();
+
+  response.headers.set("Access-Control-Allow-Origin", "*");
+  response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  if (request.method === "OPTIONS") {
+    return new NextResponse(null, { status: 200, headers: response.headers });
+  }
+
+  return response;
 }
 
-export function getErrorMessage(error: unknown) {
-  if (error instanceof Error) return error.message;
-  try { return String(error); } catch { return "Erreur inconnue"; }
-}
+export const config = {
+  matcher: "/api/:path*",
+};
 
-export function corsHeaders() {
-  return {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-  };
-}
