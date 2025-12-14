@@ -135,6 +135,41 @@ export async function POST(req: Request) {
   }
 }
 
+export async function PUT(req: Request) {
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": "https://projet-pgl-hockey-4nh3.vercel.app",
+    "Access-Control-Allow-Methods": "PUT, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  };
+
+  const prisma = await getPrismaClient();
+
+  try {
+    const { id, ...data } = await req.json();
+
+    if (!id) {
+      return NextResponse.json(
+        { success: false, message: "Paramètre 'id' manquant" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: parseInt(id, 10) },
+      data,
+    });
+
+    return NextResponse.json({ success: true, user: updatedUser }, { headers: corsHeaders });
+  } catch (error) {
+    const message = getErrorMessage(error);
+    console.error("Erreur PUT /api/users:", message);
+    return NextResponse.json({ success: false, message }, { status: 500, headers: corsHeaders });
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+
 //fonction pour supprimer un user
 export async function DELETE(req: Request) {
   const prisma = await getPrismaClient();
@@ -185,6 +220,8 @@ export async function DELETE(req: Request) {
     await prisma.$disconnect();
   }
 }
+
+
 
 
 export async function GET() {
