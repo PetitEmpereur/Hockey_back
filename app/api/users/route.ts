@@ -85,6 +85,7 @@ export async function POST(req: Request) {
               dateNaissance: true,
               info: true,
               role: true,
+              isAdmin: true,
               substituer: true,
               suspension: true,
               createdAt: true,
