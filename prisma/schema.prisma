@@ -96,7 +96,7 @@ model Actualite {
 
 model Entrainement  {
   id          Int      @id @default(autoincrement())
-  titre       String
+  title       String
   date        DateTime
   startTime   String
   endTime     String
