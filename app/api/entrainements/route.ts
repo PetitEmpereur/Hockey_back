@@ -37,8 +37,9 @@ export async function POST(req: Request) {
 
   try {
     const data = await req.json();
+    const prisma = await getPrismaClient();
 
-    // Valider les champs minimum
+
     if (!data.title || !data.date || !data.startTime || !data.endTime) {
       return NextResponse.json(
         { success: false, message: "Champs obligatoires manquants" },
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
 
     const newEntrainement = await prisma.entrainement.create({
       data: {
-        titre: String(data.title),
+        title: String(data.title),
         date: new Date(data.date),
         startTime: String(data.startTime),
         endTime: String(data.endTime),
