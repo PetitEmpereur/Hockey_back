@@ -20,8 +20,6 @@ function getErrorMessage(error: unknown) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-
-    // Vérification + conversion
     const payload = {
       titre: body.titre,
       dateHeure: new Date(body.dateHeure),  
@@ -32,7 +30,6 @@ export async function POST(req: Request) {
       type: body.type,  
       
     };
-
     const prisma = await getPrismaClient();
 
     const match = await prisma.match.create({

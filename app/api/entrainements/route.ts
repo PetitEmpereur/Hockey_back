@@ -17,26 +17,57 @@ function getErrorMessage(error: unknown) {
   }
 }
 
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 200,
+    headers: {
+      "Access-Control-Allow-Origin": "https://projet-pgl-hockey-4nh3.vercel.app",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    },
+  });
+}
+
 export async function POST(req: Request) {
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": "https://projet-pgl-hockey-4nh3.vercel.app",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  };
+
   try {
     const data = await req.json();
 
-    const prisma = await getPrismaClient();
-    try {
-      const entrainement = await prisma.entrainement.create({
-        data,
-      });
-
-      return NextResponse.json({ success: true, entrainement });
-    } finally {
-      await prisma.$disconnect();
+    // Valider les champs minimum
+    if (!data.title || !data.date || !data.startTime || !data.endTime) {
+      return NextResponse.json(
+        { success: false, message: "Champs obligatoires manquants" },
+        { status: 400, headers: corsHeaders }
+      );
     }
+
+    const newEntrainement = await prisma.entrainement.create({
+      data: {
+        titre: String(data.title),
+        date: new Date(data.date),
+        startTime: String(data.startTime),
+        endTime: String(data.endTime),
+        type: data.type ?? "technique",
+        level: data.level ?? "tous",
+        coach: String(data.coach ?? ""),
+        location: String(data.location ?? ""),
+        description: String(data.description ?? ""),
+      },
+    });
+
+    return NextResponse.json({ success: true, entrainement: newEntrainement }, { headers: corsHeaders });
   } catch (error) {
     const message = getErrorMessage(error);
-    console.error("Erreur POST /api/entrainnements:", message);
-    return NextResponse.json({ success: false, message }, { status: 500 });
+    console.error("Erreur POST /api/entrainements:", message);
+    return NextResponse.json({ success: false, message }, { status: 500, headers: corsHeaders });
   }
 }
+
 export async function DELETE(req: Request) {
   try {
     const url = new URL(req.url);
