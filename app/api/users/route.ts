@@ -145,29 +145,46 @@ export async function PUT(req: Request) {
   const prisma = await getPrismaClient();
 
   try {
-    const { id, ...data } = await req.json();
+    const url = new URL(req.url);
+    let id = url.searchParams.get("id");
 
-    if (!id) {
+    const body = await req.json();
+
+    // fallback si jamais l'id est dans le body
+    if (!id && body.id) {
+      id = String(body.id);
+    }
+
+    if (!id || Number.isNaN(Number(id))) {
       return NextResponse.json(
-        { success: false, message: "Paramètre 'id' manquant" },
+        { success: false, message: "ID utilisateur manquant ou invalide" },
         { status: 400, headers: corsHeaders }
       );
     }
 
+    delete body.id; // sécurité
+
     const updatedUser = await prisma.user.update({
-      where: { id: parseInt(id, 10) },
-      data,
+      where: { id: Number(id) },
+      data: body,
     });
 
-    return NextResponse.json({ success: true, user: updatedUser }, { headers: corsHeaders });
+    return NextResponse.json(
+      { success: true, user: updatedUser },
+      { headers: corsHeaders }
+    );
   } catch (error) {
     const message = getErrorMessage(error);
     console.error("Erreur PUT /api/users:", message);
-    return NextResponse.json({ success: false, message }, { status: 500, headers: corsHeaders });
+    return NextResponse.json(
+      { success: false, message },
+      { status: 500, headers: corsHeaders }
+    );
   } finally {
     await prisma.$disconnect();
   }
 }
+
 
 
 //fonction pour supprimer un user
@@ -231,9 +248,6 @@ export async function DELETE(req: Request) {
     await prisma.$disconnect();
   }
 }
-
-
-
 
 export async function GET() {
   try {
