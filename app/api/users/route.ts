@@ -179,8 +179,10 @@ export async function DELETE(req: Request) {
     let id = url.searchParams.get("id");
     let password: string | undefined;
 
+    const isAdmin = url.searchParams.get("admin") === "true";
+
+
     if (!id) {
-      // try JSON body — accept id = 0 and coerce types
       try {
         const body = await req.json();
         if (body && (body.id || body.id === 0)) {
@@ -201,14 +203,23 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ success: false, message: "Utilisateur introuvable" }, { status: 404 });
     }
 
-    if (!password) {
-      return NextResponse.json({ success: false, message: "Mot de passe requis" }, { status: 400 });
+    if (!isAdmin) {
+      if (!password) {
+        return NextResponse.json(
+          { success: false, message: "Mot de passe requis" },
+          { status: 400 }
+        );
+      }
+
+      const isMatch = await bcrypt.compare(password, userToDelete.password);
+      if (!isMatch) {
+        return NextResponse.json(
+          { success: false, message: "Mot de passe incorrect" },
+          { status: 401 }
+        );
+      }
     }
 
-    const isMatch = await bcrypt.compare(password, userToDelete.password);
-    if (!isMatch) {
-      return NextResponse.json({ success: false, message: "Mot de passe incorrect" }, { status: 401 });
-    }
 
     await prisma.user.delete({ where: { id: parseInt(id, 10) } });
     return NextResponse.json({ success: true });
