@@ -94,15 +94,22 @@ model Actualite {
   date      DateTime   @default(now())
 }
 
-model Entrainement {
-  id        Int       @id @default(autoincrement())
-  date      DateTime?
-  heure     DateTime?
-  lieu      String
-  notes     String?
-
-  createdAt DateTime  @default(now())
+model Entraînement {
+  id          Int      @id @default(autoincrement())
+  title       String
+  date        DateTime
+  startTime   String
+  endTime     String
+  type        String   @default("technique")  
+  level       String   @default("tous")       
+  coach       String
+  location    String
+  description String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
+
 
 // ==================== Enumération ====================
 enum Role {
