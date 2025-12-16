@@ -47,40 +47,54 @@ export async function POST(req: Request) {
 }
 
 
-export async function DELETE(req: Request) {
+export async function DELETE(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
+  const prisma = await getPrismaClient();
+
   try {
-    const url = new URL(req.url);
-    let id = url.searchParams.get("id");
+    await prisma.match.delete({
+      where: { id: Number(params.id) },
+    });
 
-    if (!id) {
-      // try JSON body
-      try {
-        const body = await req.json();
-        if (body && (body.id || body.id === 0)) {
-          id = String(body.id);
-        }
-      } catch {
-        // ignore JSON parse error; will validate below
-      }
-    }
-
-    if (!id || Number.isNaN(Number(id))) {
-      return NextResponse.json({ success: false, message: "Paramètre 'id' manquant ou invalide" }, { status: 400 });
-    }
-
-    const prisma = await getPrismaClient();
-    try {
-      await prisma.user.delete({ where: { id: parseInt(id, 10) } });
-      return NextResponse.json({ success: true });
-    } finally {
-      await prisma.$disconnect();
-    }
+    return NextResponse.json({ success: true });
   } catch (error) {
-    const message = getErrorMessage(error);
-    console.error("Erreur DELETE /api/users:", message);
-    return NextResponse.json({ success: false, message }, { status: 500 });
+    console.error('Erreur ADMIN DELETE match:', error);
+    return NextResponse.json(
+      { success: false, message: 'Erreur serveur' },
+      { status: 500 }
+    );
   }
 }
+
+export async function PUT(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
+  const prisma = await getPrismaClient();
+
+  try {
+    const body = await req.json();
+
+    const updatedMatch = await prisma.match.update({
+      where: { id: Number(params.id) },
+      data: body,
+    });
+
+    return NextResponse.json({
+      success: true,
+      match: updatedMatch,
+    });
+  } catch (error) {
+    console.error('Erreur ADMIN PUT match:', error);
+    return NextResponse.json(
+      { success: false, message: 'Erreur serveur' },
+      { status: 500 }
+    );
+  }
+}
+
 
 export async function GET() {
   try {
